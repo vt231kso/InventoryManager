@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using InventoryManagement.Models;
 
 namespace InventoryManagement.Data
 {
-  internal class InventoryContext
+  public class InventoryContext : DbContext
   {
+    public InventoryContext(DbContextOptions<InventoryContext> options) : base(options)
+    {
+    }
+
+    public DbSet<Category> Categories { get; set; } = null!;
+    public DbSet<Supplier> Suppliers { get; set; } = null!;
+    public DbSet<Product> Products { get; set; } = null!;
   }
 }
