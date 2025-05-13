@@ -1,4 +1,4 @@
-﻿<Window x:Class="InventoryManagement.MainWindow"
+<Window x:Class="InventoryManagement.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+    <ListBox x:Name="ProductListBox" DisplayMemberPath="Name" Margin="10"/>
 
-    </Grid>
+  </Grid>
 </Window>

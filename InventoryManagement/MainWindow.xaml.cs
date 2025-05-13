@@ -1,4 +1,5 @@
-﻿using System.Text;
+using InventoryManagement.Interfaces;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,9 +17,23 @@ namespace InventoryManagement
   /// </summary>
   public partial class MainWindow : Window
   {
-    public MainWindow()
+    private readonly IProductRepository _productRepository;
+
+    public MainWindow(IProductRepository productRepository)
     {
       InitializeComponent();
+      _productRepository = productRepository;
+
+      // Тепер можна використовувати методи: _productRepository.GetAllAsync(), і т.д.
     }
+    private async void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+      var products = await _productRepository.GetAllAsync();
+
+      // Наприклад, якщо у тебе є ListBox або DataGrid
+      ProductListBox.ItemsSource = products;
+    }
+
   }
+
 }
