@@ -10,7 +10,7 @@ namespace InventoryManagement
     public InventoryContext CreateDbContext(string[] args)
     {
       var optionsBuilder = new DbContextOptionsBuilder<InventoryContext>();
-      optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=InventoryDb;Trusted_Connection=True;TrustServerCertificate=True;");
+      optionsBuilder.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=NewInventoryDb;Trusted_Connection=True;TrustServerCertificate=True;");
 
       return new InventoryContext(optionsBuilder.Options);
     }
