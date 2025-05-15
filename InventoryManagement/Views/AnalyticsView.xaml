@@ -9,6 +9,7 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
+  
 
     <TextBlock Text="Середня ціна товару:" FontWeight="Bold"/>
     <TextBlock Text="{Binding AveragePrice}" Grid.Row="0" Margin="180,0,0,0"/>
@@ -31,5 +32,7 @@
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
+   
+
   </Grid>
 </Window>

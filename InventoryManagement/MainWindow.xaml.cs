@@ -2,10 +2,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using InventoryManagement.Data;
+using InventoryManagement.Reports;
 using InventoryManagement.Repositories;
 using InventoryManagement.ViewModels;
 using InventoryManagement.Views;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 
 namespace InventoryManagement
 {
@@ -14,6 +16,7 @@ namespace InventoryManagement
     private CategoryViewModel? _categoryViewModel;
     private ProductViewModel? _productViewModel;
     private SupplierViewModel? _supplierViewModel;
+    private AnalyticsViewModel? _analyticsViewModel;
 
     public MainWindow()
     {
@@ -34,12 +37,7 @@ namespace InventoryManagement
       ShowProductsView();
     }
 
-    private void SuppliersButton_Click(object sender, RoutedEventArgs e)
-    {
-      _supplierViewModel ??= App.ServiceProvider?.GetRequiredService<SupplierViewModel>();
-      _supplierViewModel?.LoadSuppliers();
-      ShowSuppliersView();
-    }
+  
 
     private void ShowCategoriesView()
     {
@@ -80,15 +78,93 @@ namespace InventoryManagement
         }
       }
     }
+    private void SuppliersButton_Click(object sender, RoutedEventArgs e)
+    {
+      _supplierViewModel ??= App.ServiceProvider?.GetRequiredService<SupplierViewModel>();
+      _supplierViewModel?.LoadSuppliers();
+      ShowSuppliersView();
+    }
     private void AnalyticsButton_Click(object sender, RoutedEventArgs e)
     {
-      var analyticsViewModel = App.ServiceProvider?.GetRequiredService<AnalyticsViewModel>();
+      _analyticsViewModel ??= App.ServiceProvider?.GetRequiredService<AnalyticsViewModel>();
       var analyticsWindow = new AnalyticsView
       {
-        DataContext = analyticsViewModel
+        DataContext = _analyticsViewModel
       };
       analyticsWindow.Show();
     }
+
+
+    private void ExportExcelButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (_analyticsViewModel == null || !_analyticsViewModel.Products.Any())
+      {
+        MessageBox.Show("Немає даних для експорту.", "Попередження", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+      }
+
+      var saveDialog = new SaveFileDialog
+      {
+        Filter = "Excel файл (*.xlsx)|*.xlsx",
+        FileName = "Аналітика.xlsx"
+      };
+
+      if (saveDialog.ShowDialog() == true)
+      {
+        var strategy = new ExcelReportStrategy();
+        var context = new ReportContext(strategy);
+        context.GenerateReport(
+          _analyticsViewModel.Products.ToList(),
+          _analyticsViewModel.CategoryDistribution.ToList(),
+          _analyticsViewModel.AveragePrice,
+          _analyticsViewModel.TotalQuantity,
+          _analyticsViewModel.CriticalLowCount,
+          saveDialog.FileName);
+
+        MessageBox.Show("Звіт у Excel збережено успішно!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
+      }
+    }
+
+
+    private void ExportPdfButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (_analyticsViewModel == null || !_analyticsViewModel.Products.Any())
+      {
+        MessageBox.Show("Немає даних для експорту.", "Попередження", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+      }
+
+      var saveDialog = new SaveFileDialog
+      {
+        Filter = "PDF файл (*.pdf)|*.pdf",
+        FileName = $"Звіт_{DateTime.Now:yyyyMMdd_HHmm}.pdf",
+        DefaultExt = ".pdf"
+      };
+
+      if (saveDialog.ShowDialog() == true)
+      {
+        try
+        {
+          var strategy = new PdfReportStrategy();
+          var context = new ReportContext(strategy);
+          context.GenerateReport(
+              _analyticsViewModel.Products.ToList(),
+              _analyticsViewModel.CategoryDistribution.ToList(),
+              _analyticsViewModel.AveragePrice,
+              _analyticsViewModel.TotalQuantity,
+              _analyticsViewModel.CriticalLowCount,
+              saveDialog.FileName);
+
+          MessageBox.Show("Звіт у PDF збережено успішно!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+          MessageBox.Show($"Помилка при збереженні PDF: {ex.Message}", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+      }
+    }
+
+
 
 
 
