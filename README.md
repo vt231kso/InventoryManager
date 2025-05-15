@@ -13,13 +13,16 @@
 - Розширювати функціональність через специфічні репозиторії (наприклад, IProductRepository, ProductRepository для роботи з конкретними сутностями), що дозволяє гнучко додавати методи для окремих моделей, не змінюючи основну реалізацію.
 
 Структура:
-1) IRepository<T> – базовий інтерфейс для загальних операцій доступу до даних.
+1) IRepository<T> – базовий інтерфейс для загальних операцій доступу до даних. [InventoryManagement/Repositories/IRepository.cs](./InventoryManagement/Interfaces/IRepository.cs)
 
-2) Repository<T> – загальна реалізація репозиторія, що використовує IRepository<T>.
+2) Repository<T> – загальна реалізація репозиторія, що використовує IRepository<T>.  [InventoryManagement/Repositories/Repository.cs](./InventoryManagement/Repositories/Repository.cs)
 
 3) IProductRepository, ProductRepository – приклади специфічних реалізацій для конкретних моделей, які додають бізнес-логіку.
+   
+ [InventoryManagement/Repositories/IProductRepository.cs](./InventoryManagement/Interfaces/IProductRepository.cs)  
+  [InventoryManagement/Repositories/ProductRepository.cs](./InventoryManagement/Repositories/ProductRepository.cs)
 
-4) Цей підхід покращує підтримку та масштабованість додатку, дозволяючи легко змінювати і розширювати систему з мінімальними змінами в коді.
+5) Цей підхід покращує підтримку та масштабованість додатку, дозволяючи легко змінювати і розширювати систему з мінімальними змінами в коді.
 
 **MVVM (Model-View-ViewModel)**
 
@@ -27,8 +30,14 @@
 
 - Model (Модель) – представляє структуру та логіку зберігання даних. У проєкті це класи Product, Category, Supplier та Entity Framework InventoryContext, що взаємодіє з базою даних.
 
-- ViewModel (Модель представлення) – містить логіку взаємодії між Model і View. Для кожної сутності (Product, Category, Supplier) створено окрему ViewModel (ProductViewModel, CategoryViewModel, SupplierViewModel), яка:
+ [InventoryManagement/Models/Product.cs](./InventoryManagement/Models/Product.cs)  
+  [InventoryManagement/Data/InventoryContext.cs](./InventoryManagement/Data/InventoryContext.cs)
 
+- ViewModel (Модель представлення) – містить логіку взаємодії між Model і View. Для кожної сутності (Product, Category, Supplier) створено окрему ViewModel (ProductViewModel, CategoryViewModel, SupplierViewModel), яка:
+  
+ [InventoryManagement/ViewModels/CategoryViewModel.cs](./InventoryManagement/ViewModels/CategoryViewModel.cs)  
+  [InventoryManagement/ViewModels/ProductViewModel.cs](./InventoryManagement/ViewModels/ProductViewModel.cs)
+  
    - надає дані для прив’язки до інтерфейсу користувача;
 
    - реалізує CRUD-операції через репозиторії;
@@ -36,6 +45,10 @@
    - забезпечує реалізацію INotifyPropertyChanged для оновлення інтерфейсу при зміні даних.
 
 - View (Подання) – XAML-файли (ProductsView.xaml, CategoriesView.xaml, SuppliersView.xaml), які відповідають за візуальне відображення та отримання вводу від користувача. View підключені до ViewModel через Data Binding, не маючи прямого доступу до моделей або логіки обробки.
+  
+ [InventoryManagement/Views/CategoriesView.xaml](./InventoryManagement/Views/CategoriesView.xaml)  
+  [InventoryManagement/Views/ProductsView.xaml](./InventoryManagement/Views/ProductsView.xaml)
+
 
 Завдяки такому розділенню:
 
@@ -46,6 +59,24 @@
 3) код залишається чистим і структурованим.
 
 **Strategy**
+
+- Інтерфейс сортування:  
+  [InventoryManagement/Sorting/ISortStrategy.cs](./InventoryManagement/ViewModels/Sorting/ISortingStrategy.cs)
+
+- Класи-стратегії:  
+  [InventoryManagement/Sorting/SortByNameStrategy.cs](./InventoryManagement/ViewModels/Sorting/SortByNameStrategy.cs)  
+  [InventoryManagement/Sorting/SortByPriceStrategy.cs](./InventoryManagement/ViewModels/Sorting/SortByPriceStrategy.cs)
+
+- Контекст сортування:  
+  [InventoryManagement/Sorting/ProductSorter.cs](./InventoryManagement/ViewModels/Sorting/ProductSorter.cs)
+
+- Інтерфейс звітів:  
+  [InventoryManagement/Reports/IReportStrategy.cs](./InventoryManagement/Reports/IReportStrategy.cs)
+
+- Реалізації звітів:  
+  [InventoryManagement/Reports/ExcelReportStrategy.cs](./InventoryManagement/Reports/ExcelReportStrategy.cs)  
+  [InventoryManagement/Reports/PdfReportStrategy.cs](./InventoryManagement/Reports/PdfReportStrategy.cs)
+
 
 Патерн "Стратегія" дозволяє визначити сімейство алгоритмів, інкапсулювати кожен з них і зробити їх взаємозамінними. Це дозволяє змінювати поведінку програми на льоту без модифікації основного коду.
 
@@ -77,7 +108,13 @@ SortByQuantityStrategy
 
 Чому: Це дозволяє легко додавати нові формати звітів без змін у клієнтському коді. Забезпечує розширюваність і замінність алгоритмів.
 
+
+
 **Спостерігач(Observer Pattern)**
+
+- Клас `ProductViewModel` реалізує `INotifyPropertyChanged`:  
+  [InventoryManagement/ViewModels/ProductViewModel.cs](./InventoryManagement/ViewModels/ProductViewModel.cs)
+
 
 Цей шаблон дозволяє об'єктам-спостерігачам стежити за змінами стану об'єкта-суб'єкта. У WPF це основа механізму data-binding.
 
