@@ -1,13 +1,21 @@
 <Window x:Class="InventoryManagement.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:InventoryManagement"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-    <ListBox x:Name="ProductListBox" DisplayMemberPath="Name" Margin="10"/>
+        Title="Inventory Management" Height="600" Width="800">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
 
+    <!-- Панель навігації -->
+    <StackPanel x:Name="NavigationPanel" Orientation="Horizontal" Grid.Row="0" Background="LightGray">
+      <Button Content="Категорії" Click="CategoriesButton_Click" Margin="10" Padding="20,5"/>
+      <Button Content="Товари" Click="ProductsButton_Click" Margin="10" Padding="20,5"/>
+      <Button Content="Постачальники" Click="SuppliersButton_Click" Margin="10" Padding="20,5"/>
+    </StackPanel>
+
+    <!-- Контент -->
+    <ContentControl x:Name="MainContent" Grid.Row="1"/>
   </Grid>
 </Window>

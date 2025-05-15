@@ -4,6 +4,7 @@ namespace InventoryManagement.Interfaces
 {
   public interface ICategoryRepository : IRepository<Category>
   {
-    //Task<IEnumerable<Category>> GetCategoriesWithProductsAsync();
+    // Використовуємо синхронний метод
+    IEnumerable<Category> GetAll();
   }
 }
