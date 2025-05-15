@@ -1,11 +1,8 @@
 using InventoryManagement.Data;
 using InventoryManagement.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InventoryManagement.Repositories
 {
@@ -20,30 +17,31 @@ namespace InventoryManagement.Repositories
       _dbSet = _context.Set<T>();
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+    // Синхронний метод для отримання всіх елементів
+    public IEnumerable<T> GetAll() => _dbSet.ToList();  // Використовуємо ToList() для синхронного отримання всіх елементів
 
-    public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
+    // Синхронний метод для отримання елемента за ID
+    public T GetById(int id) => _dbSet.Find(id);  // Використовуємо Find() для отримання елемента за ID
 
-    public async Task AddAsync(T entity)
+    // Синхронний метод для додавання елемента
+    public void Add(T entity)
     {
-      await _dbSet.AddAsync(entity);
-      await _context.SaveChangesAsync();
+      _dbSet.Add(entity);
+      _context.SaveChanges();
     }
 
-    public async Task UpdateAsync(T entity)
+    // Синхронний метод для оновлення елемента
+    public void Update(T entity)
     {
       _dbSet.Update(entity);
-      await _context.SaveChangesAsync();
+      _context.SaveChanges();
     }
 
-    public async Task DeleteAsync(int id)
+    // Синхронний метод для видалення елемента
+    public void Delete(T entity)
     {
-      var entity = await GetByIdAsync(id);
-      if (entity != null)
-      {
-        _dbSet.Remove(entity);
-        await _context.SaveChangesAsync();
-      }
+      _dbSet.Remove(entity);
+      _context.SaveChanges();
     }
   }
 }

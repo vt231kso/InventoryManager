@@ -1,39 +1,82 @@
-using InventoryManagement.Interfaces;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using InventoryManagement.ViewModels;
+using InventoryManagement.Views;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryManagement
 {
-  /// <summary>
-  /// Interaction logic for MainWindow.xaml
-  /// </summary>
   public partial class MainWindow : Window
   {
-    private readonly IProductRepository _productRepository;
+    private CategoryViewModel? _categoryViewModel;
+    private ProductViewModel? _productViewModel;
+    private SupplierViewModel? _supplierViewModel;
 
-    public MainWindow(IProductRepository productRepository)
+    public MainWindow()
     {
       InitializeComponent();
-      _productRepository = productRepository;
-
-      // Тепер можна використовувати методи: _productRepository.GetAllAsync(), і т.д.
     }
-    private async void Window_Loaded(object sender, RoutedEventArgs e)
+
+    private void CategoriesButton_Click(object sender, RoutedEventArgs e)
     {
-      var products = await _productRepository.GetAllAsync();
-
-      // Наприклад, якщо у тебе є ListBox або DataGrid
-      ProductListBox.ItemsSource = products;
+      _categoryViewModel ??= App.ServiceProvider?.GetRequiredService<CategoryViewModel>();
+      _categoryViewModel?.LoadCategories();
+      ShowCategoriesView();
     }
 
-  }
+    private void ProductsButton_Click(object sender, RoutedEventArgs e)
+    {
+      _productViewModel ??= App.ServiceProvider?.GetRequiredService<ProductViewModel>();
+      _productViewModel?.LoadProducts();
+      ShowProductsView();
+    }
 
+    private void SuppliersButton_Click(object sender, RoutedEventArgs e)
+    {
+      _supplierViewModel ??= App.ServiceProvider?.GetRequiredService<SupplierViewModel>();
+      _supplierViewModel?.LoadSuppliers();
+      ShowSuppliersView();
+    }
+
+    private void ShowCategoriesView()
+    {
+      if (_categoryViewModel != null)
+      {
+        MainContent.Content = new CategoriesView(_categoryViewModel);
+        UpdateActiveButton("Категорії");
+      }
+    }
+
+    private void ShowProductsView()
+    {
+      if (_productViewModel != null)
+      {
+        MainContent.Content = new ProductsView(_productViewModel);
+        UpdateActiveButton("Товари");
+      }
+    }
+
+    private void ShowSuppliersView()
+    {
+      if (_supplierViewModel != null)
+      {
+        MainContent.Content = new SuppliersView(_supplierViewModel);
+        UpdateActiveButton("Постачальники");
+      }
+    }
+
+    private void UpdateActiveButton(string activeButtonName)
+    {
+      foreach (var child in NavigationPanel.Children)
+      {
+        if (child is Button button)
+        {
+          button.Background = button.Content.ToString() == activeButtonName
+              ? Brushes.LightBlue
+              : Brushes.LightGray;
+        }
+      }
+    }
+  }
 }

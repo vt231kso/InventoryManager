@@ -1,6 +1,8 @@
 using InventoryManagement.Data;
 using InventoryManagement.Interfaces;
 using InventoryManagement.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace InventoryManagement.Repositories
 {
@@ -8,6 +10,10 @@ namespace InventoryManagement.Repositories
   {
     public CategoryRepository(InventoryContext context) : base(context) { }
 
-    // Можна додавати специфічні методи для Category тут, якщо потрібно
+    // Синхронний метод для отримання всіх категорій
+    public IEnumerable<Category> GetAll()
+    {
+      return _context.Categories.ToList();  // Використовуємо ToList() для синхронного отримання всіх категорій
+    }
   }
 }

@@ -1,6 +1,8 @@
 using InventoryManagement.Data;
 using InventoryManagement.Interfaces;
 using InventoryManagement.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace InventoryManagement.Repositories
 {
@@ -8,7 +10,10 @@ namespace InventoryManagement.Repositories
   {
     public ProductRepository(InventoryContext context) : base(context) { }
 
-    // Можна додавати специфічні методи для Product тут, якщо потрібно
+    // Синхронний метод для отримання всіх продуктів
+    public IEnumerable<Product> GetAll()
+    {
+      return _context.Products.ToList(); // Використовуємо ToList() для синхронного отримання всіх продуктів
+    }
   }
 }
-

@@ -4,6 +4,7 @@ using InventoryManagement.Interfaces;
 using InventoryManagement.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Windows;
+using InventoryManagement.ViewModels;
 
 namespace InventoryManagement
 {
@@ -13,29 +14,43 @@ namespace InventoryManagement
 
     protected override void OnStartup(StartupEventArgs e)
     {
-      var services = new ServiceCollection();
+      try
+      {
+        var services = new ServiceCollection();
 
-      // 🔌 Реєстрація контексту бази даних
-      services.AddDbContext<InventoryContext>(options =>
-          options.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=InventoryDB;Trusted_Connection=True;TrustServerCertificate=True;"));
+        // 🔌 Реєстрація контексту бази даних
+        services.AddDbContext<InventoryContext>(options =>
+            options.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=NewInventoryDB;Trusted_Connection=True;TrustServerCertificate=True;"));
 
-      // 🧱 Базовий generic репозиторій
-      services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        // 🧱 Базовий generic репозиторій
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
-      // 📦 Конкретні репозиторії
-      services.AddScoped<IProductRepository, ProductRepository>();
-      services.AddScoped<ICategoryRepository, CategoryRepository>();
-      services.AddScoped<ISupplierRepository, SupplierRepository>();
+        // 📦 Конкретні репозиторії
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
 
-      // 🪟 Реєстрація головного вікна (необов’язково, але корисно для DI)
-      services.AddTransient<MainWindow>();
+        // 📦 Реєстрація ViewModel для DI
+        services.AddTransient<CategoryViewModel>();
+        services.AddTransient<ProductViewModel>();
+        services.AddTransient<SupplierViewModel>();
 
-      // Створення провайдера
-      ServiceProvider = services.BuildServiceProvider();
+        // 🪟 Реєстрація головного вікна
+        services.AddTransient<MainWindow>();
 
-      // 🔁 Відкриття головного вікна через DI
-      var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-      mainWindow.Show();
+        // Створення провайдера
+        ServiceProvider = services.BuildServiceProvider();
+
+        // 🔁 Відкриття головного вікна через DI
+        var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+        mainWindow.Show();
+      }
+      catch (Exception ex)
+      {
+        // Вивести повідомлення про помилку
+        MessageBox.Show($"Помилка запуску: {ex.Message}", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+        Shutdown(); // Закриває застосунок у разі помилки
+      }
 
       base.OnStartup(e);
     }

@@ -1,0 +1,78 @@
+<UserControl x:Class="InventoryManagement.Views.ProductsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="800">
+
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="20" VerticalAlignment="Top" HorizontalAlignment="Center">
+
+      <!-- 🔷 Форма вводу продукту -->
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="250"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Content="Назва:" Grid.Row="0" Grid.Column="0" Margin="5"/>
+        <TextBox Text="{Binding CurrentProduct.Name, UpdateSourceTrigger=PropertyChanged}" 
+                 Grid.Row="0" Grid.Column="1" Margin="5"/>
+
+        <Label Content="Опис:" Grid.Row="1" Grid.Column="0" Margin="5"/>
+        <TextBox Text="{Binding CurrentProduct.Description, UpdateSourceTrigger=PropertyChanged}" 
+                 Grid.Row="1" Grid.Column="1" Margin="5"/>
+
+        <Label Content="Категорія:" Grid.Row="2" Grid.Column="0" Margin="5"/>
+        <ComboBox ItemsSource="{Binding Categories}"
+                  DisplayMemberPath="Name"
+                  SelectedValuePath="CategoryID"
+                  SelectedValue="{Binding CurrentProduct.CategoryID}"
+                  Grid.Row="2" Grid.Column="1" Margin="5"/>
+
+        <Label Content="Постачальник:" Grid.Row="3" Grid.Column="0" Margin="5"/>
+        <ComboBox ItemsSource="{Binding Suppliers}"
+                  DisplayMemberPath="Name"
+                  SelectedValuePath="SupplierID"
+                  SelectedValue="{Binding CurrentProduct.SupplierID}"
+                  Grid.Row="3" Grid.Column="1" Margin="5"/>
+
+        <Label Content="Ціна:" Grid.Row="4" Grid.Column="0" Margin="5"/>
+        <TextBox Text="{Binding CurrentProduct.Price, UpdateSourceTrigger=PropertyChanged}" 
+                 Grid.Row="4" Grid.Column="1" Margin="5"/>
+
+        <Label Content="Кількість:" Grid.Row="5" Grid.Column="0" Margin="5"/>
+        <TextBox Text="{Binding CurrentProduct.Quantity, UpdateSourceTrigger=PropertyChanged}" 
+                 Grid.Row="5" Grid.Column="1" Margin="5"/>
+      </Grid>
+
+      <!-- 🔶 Таблиця продуктів -->
+      <DataGrid ItemsSource="{Binding Products}"
+                SelectedItem="{Binding SelectedProduct}"
+                AutoGenerateColumns="False"
+                Height="200" Margin="0,20,0,10" IsReadOnly="True">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Назва" Binding="{Binding Name}" Width="*"/>
+          <DataGridTextColumn Header="Ціна" Binding="{Binding Price}" Width="100"/>
+          <DataGridTextColumn Header="Кількість" Binding="{Binding Quantity}" Width="100"/>
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <!-- 🔘 Кнопки дій -->
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
+        <Button Content="Додати" Click="AddButton_Click" Margin="5" Width="100"/>
+        <Button Content="Змінити" Click="EditButton_Click" Margin="5" Width="100"/>
+        <Button Content="Видалити" Click="DeleteButton_Click" Margin="5" Width="100"/>
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
