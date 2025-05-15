@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using InventoryManagement.Interfaces;
 using InventoryManagement.Models;
 using System.ComponentModel;
+using InventoryManagement.ViewModels.Sorting;
+using System.Linq;
 
 namespace InventoryManagement.ViewModels
 {
@@ -10,24 +12,68 @@ namespace InventoryManagement.ViewModels
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly ISupplierRepository _supplierRepository;
+    private ProductSorter _sorter = new ProductSorter(new SortByNameStrategy());
 
-    public ObservableCollection<Product> Products { get; } = new ObservableCollection<Product>();
+    private ObservableCollection<Product> _products = new ObservableCollection<Product>();
+    public ObservableCollection<Product> Products
+    {
+      get => _products;
+      private set
+      {
+        _products = value;
+        OnPropertyChanged(nameof(Products));
+      }
+    }
+
     public ObservableCollection<Category> Categories { get; } = new ObservableCollection<Category>();
     public ObservableCollection<Supplier> Suppliers { get; } = new ObservableCollection<Supplier>();
 
-    public Product SelectedProduct { get; set; }
-    public Product CurrentProduct { get; set; } = new Product();
+    private Product _selectedProduct;
+    public Product SelectedProduct
+    {
+      get => _selectedProduct;
+      set
+      {
+        _selectedProduct = value;
+        OnPropertyChanged(nameof(SelectedProduct));
+        if (value != null)
+        {
+          CurrentProduct = new Product
+          {
+            ProductID = value.ProductID,
+            Name = value.Name,
+            Description = value.Description,
+            CategoryID = value.CategoryID,
+            SupplierID = value.SupplierID,
+            Price = value.Price,
+            Quantity = value.Quantity
+          };
+        }
+      }
+    }
+
+    private Product _currentProduct = new Product();
+    public Product CurrentProduct
+    {
+      get => _currentProduct;
+      set
+      {
+        _currentProduct = value;
+        OnPropertyChanged(nameof(CurrentProduct));
+      }
+    }
 
     public ProductViewModel(
-      IProductRepository productRepository,
-      ICategoryRepository categoryRepository,
-      ISupplierRepository supplierRepository)
+        IProductRepository productRepository,
+        ICategoryRepository categoryRepository,
+        ISupplierRepository supplierRepository)
     {
       _productRepository = productRepository;
       _categoryRepository = categoryRepository;
       _supplierRepository = supplierRepository;
       LoadData();
     }
+
     public void LoadProducts()
     {
       Products.Clear();
@@ -38,10 +84,32 @@ namespace InventoryManagement.ViewModels
       }
     }
 
-    // Синхронне завантаження даних
+    public void SortProducts(string criterion)
+    {
+      switch (criterion)
+      {
+        case "Name":
+          _sorter.SetStrategy(new SortByNameStrategy());
+          break;
+        case "Price":
+          _sorter.SetStrategy(new SortByPriceStrategy());
+          break;
+        case "Quantity":
+          _sorter.SetStrategy(new SortByQuantityStrategy());
+          break;
+      }
+
+      var sortedList = _sorter.Sort(Products.ToList()).ToList();
+      Products.Clear();
+      foreach (var product in sortedList)
+      {
+        Products.Add(product);
+      }
+    }
+
     public void LoadData()
     {
-      var products = _productRepository.GetAll();  // Використовуємо синхронний метод GetAll
+      var products = _productRepository.GetAll();
       foreach (var product in products)
         Products.Add(product);
 
@@ -58,6 +126,7 @@ namespace InventoryManagement.ViewModels
     {
       _productRepository.Add(product);
       Products.Add(product);
+      CurrentProduct = new Product();
     }
 
     public void UpdateProduct(Product product)

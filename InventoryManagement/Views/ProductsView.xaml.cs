@@ -16,24 +16,60 @@ namespace InventoryManagement.Views
       DataContext = _viewModel;
     }
 
-    private void AddButton_Click(object sender, RoutedEventArgs e)
+    //private void AddButton_Click(object sender, RoutedEventArgs e)
+    //{
+    //  if (!string.IsNullOrWhiteSpace(_viewModel.CurrentProduct.Name) &&
+    //      _viewModel.CurrentProduct.Price > 0 &&
+    //      _viewModel.CurrentProduct.Quantity >= 0)
+    //  {
+    //    _viewModel.AddProduct(new Product
+    //    {
+    //      Name = _viewModel.CurrentProduct.Name,
+    //      Description = _viewModel.CurrentProduct.Description,
+    //      CategoryID = _viewModel.CurrentProduct.CategoryID,
+    //      SupplierID = _viewModel.CurrentProduct.SupplierID,
+    //      Price = _viewModel.CurrentProduct.Price,
+    //      Quantity = _viewModel.CurrentProduct.Quantity
+    //    });
+    //    _viewModel.CurrentProduct = new Product();
+    //  }
+    //}
+    private void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-      if (!string.IsNullOrWhiteSpace(_viewModel.CurrentProduct.Name) &&
-          _viewModel.CurrentProduct.Price > 0 &&
-          _viewModel.CurrentProduct.Quantity >= 0)
+      if (SortComboBox.SelectedItem is ComboBoxItem selectedItem &&
+          DataContext is ProductViewModel viewModel)
       {
-        _viewModel.AddProduct(new Product
+        string sortCriterion = selectedItem.Content.ToString() switch
         {
-          Name = _viewModel.CurrentProduct.Name,
-          Description = _viewModel.CurrentProduct.Description,
-          CategoryID = _viewModel.CurrentProduct.CategoryID,
-          SupplierID = _viewModel.CurrentProduct.SupplierID,
-          Price = _viewModel.CurrentProduct.Price,
-          Quantity = _viewModel.CurrentProduct.Quantity
-        });
-        _viewModel.CurrentProduct = new Product();
+          "Назвою" => "Name",
+          "Ціною" => "Price",
+          "Кількістю" => "Quantity",
+          _ => "Name" // Значення за замовчуванням
+        };
+
+        viewModel.SortProducts(sortCriterion);
       }
     }
+
+    private void AddButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (DataContext is ProductViewModel viewModel &&
+          !string.IsNullOrWhiteSpace(viewModel.CurrentProduct.Name) &&
+          viewModel.CurrentProduct.Price > 0 &&
+          viewModel.CurrentProduct.Quantity >= 0)
+      {
+        viewModel.AddProduct(new Product
+        {
+          Name = viewModel.CurrentProduct.Name,
+          Description = viewModel.CurrentProduct.Description,
+          CategoryID = viewModel.CurrentProduct.CategoryID,
+          SupplierID = viewModel.CurrentProduct.SupplierID,
+          Price = viewModel.CurrentProduct.Price,
+          Quantity = viewModel.CurrentProduct.Quantity
+        });
+      }
+    }
+
 
     private void EditButton_Click(object sender, RoutedEventArgs e)
     {
