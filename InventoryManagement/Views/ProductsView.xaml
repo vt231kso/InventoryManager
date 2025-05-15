@@ -65,6 +65,19 @@
           <DataGridTextColumn Header="Кількість" Binding="{Binding Quantity}" Width="100"/>
         </DataGrid.Columns>
       </DataGrid>
+      <StackPanel Orientation="Horizontal" Margin="0,10,0,0" HorizontalAlignment="Center">
+        <Label Content="Сортувати за:" VerticalAlignment="Center" Margin="5"/>
+        <ComboBox x:Name="SortComboBox" 
+          Width="120" 
+          Margin="5" 
+          SelectedIndex="0"
+          SelectionChanged="SortComboBox_SelectionChanged">
+          <!-- Додано обробник -->
+          <ComboBoxItem Content="Назвою"/>
+          <ComboBoxItem Content="Ціною"/>
+          <ComboBoxItem Content="Кількістю"/>
+        </ComboBox>
+      </StackPanel>
 
       <!-- 🔘 Кнопки дій -->
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">

@@ -97,13 +97,14 @@ namespace InventoryManagement.ViewModels
         case "Quantity":
           _sorter.SetStrategy(new SortByQuantityStrategy());
           break;
-        default:
-          _sorter.SetStrategy(new SortByNameStrategy());
-          break;
       }
 
-      var sorted = _sorter.Sort(Products.ToList());
-      Products = new ObservableCollection<Product>(sorted);
+      var sortedList = _sorter.Sort(Products.ToList()).ToList();
+      Products.Clear();
+      foreach (var product in sortedList)
+      {
+        Products.Add(product);
+      }
     }
 
     public void LoadData()

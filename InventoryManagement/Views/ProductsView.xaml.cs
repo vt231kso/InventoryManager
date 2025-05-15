@@ -36,9 +36,18 @@ namespace InventoryManagement.Views
     //}
     private void SortComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-      if (SortComboBox.SelectedItem is ComboBoxItem item && DataContext is ProductViewModel viewModel)
+      if (SortComboBox.SelectedItem is ComboBoxItem selectedItem &&
+          DataContext is ProductViewModel viewModel)
       {
-        viewModel.SortProducts(item.Content.ToString());
+        string sortCriterion = selectedItem.Content.ToString() switch
+        {
+          "Назвою" => "Name",
+          "Ціною" => "Price",
+          "Кількістю" => "Quantity",
+          _ => "Name" // Значення за замовчуванням
+        };
+
+        viewModel.SortProducts(sortCriterion);
       }
     }
 
