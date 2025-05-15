@@ -16,6 +16,7 @@ namespace InventoryManagement
     private CategoryViewModel? _categoryViewModel;
     private ProductViewModel? _productViewModel;
     private SupplierViewModel? _supplierViewModel;
+    private AnalyticsViewModel? _analyticsViewModel;
 
     public MainWindow()
     {
@@ -95,7 +96,7 @@ namespace InventoryManagement
 
     private void ExportExcelButton_Click(object sender, RoutedEventArgs e)
     {
-      if (_productViewModel == null || !_productViewModel.Products.Any())
+      if (_analyticsViewModel == null || !_analyticsViewModel.Products.Any())
       {
         MessageBox.Show("Немає даних для експорту.", "Попередження", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
@@ -104,17 +105,25 @@ namespace InventoryManagement
       var saveDialog = new SaveFileDialog
       {
         Filter = "Excel файл (*.xlsx)|*.xlsx",
-        FileName = "Звіт.xlsx"
+        FileName = "Аналітика.xlsx"
       };
 
       if (saveDialog.ShowDialog() == true)
       {
         var strategy = new ExcelReportStrategy();
         var context = new ReportContext(strategy);
-        context.Generate(_productViewModel.Products.ToList(), saveDialog.FileName);
+        context.GenerateReport(
+          _analyticsViewModel.Products.ToList(),
+          _analyticsViewModel.CategoryDistribution.ToList(),
+          _analyticsViewModel.AveragePrice,
+          _analyticsViewModel.TotalQuantity,
+          _analyticsViewModel.CriticalLowCount,
+          saveDialog.FileName);
+
         MessageBox.Show("Звіт у Excel збережено успішно!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
       }
     }
+
 
     private void ExportPdfButton_Click(object sender, RoutedEventArgs e)
     {
@@ -134,7 +143,12 @@ namespace InventoryManagement
       {
         var strategy = new PdfReportStrategy();
         var context = new ReportContext(strategy);
-        context.Generate(_productViewModel.Products.ToList(), saveDialog.FileName);
+        context.GenerateReport(_analyticsViewModel.Products.ToList(),
+          _analyticsViewModel.CategoryDistribution.ToList(),
+          _analyticsViewModel.AveragePrice,
+          _analyticsViewModel.TotalQuantity,
+          _analyticsViewModel.CriticalLowCount,
+          saveDialog.FileName);
         MessageBox.Show("Звіт у PDF збережено успішно!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
       }
     }
