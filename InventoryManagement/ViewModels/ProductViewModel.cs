@@ -3,6 +3,8 @@ using InventoryManagement.Interfaces;
 using InventoryManagement.Models;
 using System.ComponentModel;
 using InventoryManagement.ViewModels.Sorting;
+using InventoryManagement.Services;
+
 using System.Linq;
 
 namespace InventoryManagement.ViewModels
@@ -13,6 +15,8 @@ namespace InventoryManagement.ViewModels
     private readonly ICategoryRepository _categoryRepository;
     private readonly ISupplierRepository _supplierRepository;
     private ProductSorter _sorter = new ProductSorter(new SortByNameStrategy());
+    private readonly InventoryStatisticsService _statisticsService = new InventoryStatisticsService();
+
 
     private ObservableCollection<Product> _products = new ObservableCollection<Product>();
     public ObservableCollection<Product> Products
@@ -24,6 +28,14 @@ namespace InventoryManagement.ViewModels
         OnPropertyChanged(nameof(Products));
       }
     }
+    public int TotalQuantity => _statisticsService.GetTotalQuantity(Products);
+    public decimal TotalValue => _statisticsService.GetTotalValue(Products);
+    private void RefreshStatistics()
+    {
+      OnPropertyChanged(nameof(TotalQuantity));
+      OnPropertyChanged(nameof(TotalValue));
+    }
+
 
     public ObservableCollection<Category> Categories { get; } = new ObservableCollection<Category>();
     public ObservableCollection<Supplier> Suppliers { get; } = new ObservableCollection<Supplier>();
@@ -82,6 +94,7 @@ namespace InventoryManagement.ViewModels
       {
         Products.Add(product);
       }
+      RefreshStatistics();
     }
 
     public void SortProducts(string criterion)
@@ -127,6 +140,7 @@ namespace InventoryManagement.ViewModels
       _productRepository.Add(product);
       Products.Add(product);
       CurrentProduct = new Product();
+      RefreshStatistics();
     }
 
     public void UpdateProduct(Product product)
@@ -134,12 +148,14 @@ namespace InventoryManagement.ViewModels
       _productRepository.Update(product);
       var index = Products.IndexOf(Products.First(p => p.ProductID == product.ProductID));
       Products[index] = product;
+      RefreshStatistics();
     }
 
     public void DeleteProduct(int id)
     {
       _productRepository.Delete(_productRepository.GetById(id));
       Products.Remove(Products.First(p => p.ProductID == id));
+      RefreshStatistics();
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
