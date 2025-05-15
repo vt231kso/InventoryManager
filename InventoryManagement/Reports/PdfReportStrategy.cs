@@ -1,82 +1,144 @@
-using PdfSharp.Pdf;
-using PdfSharp.Drawing;
-using System.Collections.Generic;
+using System.IO;
+using System.Windows;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System.Drawing.Text;
+using System.Runtime.InteropServices;
 using InventoryManagement.Models;
 using InventoryManagement.ViewModels;
-using ClosedXML.Excel;// для Product
 
 namespace InventoryManagement.Reports
 {
   public class PdfReportStrategy : IReportStrategy
   {
-    public void GenerateReport(
-List<Product> products,
-List<CategoryCount> categoryDistribution,
-double averagePrice,
-int totalQuantity,
-int criticalLowCount,
-string filePath)
+    [DllImport("gdi32.dll")]
+    private static extern IntPtr AddFontMemResourceEx(IntPtr pbFont, uint cbFont, IntPtr pdv, [In] ref uint pcFonts);
+
+    private Font _cyrillicFont;
+
+    public PdfReportStrategy()
     {
-      using var workbook = new XLWorkbook();
-      var worksheet = workbook.Worksheets.Add("Аналітика");
-
-      // Виведення загальної аналітики
-      worksheet.Cell(1, 1).Value = "Середня ціна:";
-      worksheet.Cell(1, 2).Value = averagePrice;
-
-      worksheet.Cell(2, 1).Value = "Загальна кількість товарів:";
-      worksheet.Cell(2, 2).Value = totalQuantity;
-
-      worksheet.Cell(3, 1).Value = "Кількість з критично низьким запасом:";
-      worksheet.Cell(3, 2).Value = criticalLowCount;
-
-      // Виведення розподілу за категоріями
-      worksheet.Cell(5, 1).Value = "Категорія";
-      worksheet.Cell(5, 2).Value = "Кількість товарів";
-
-      int row = 6;
-      foreach (var category in categoryDistribution)
-      {
-        worksheet.Cell(row, 1).Value = category.CategoryName;
-        worksheet.Cell(row, 2).Value = category.ProductCount;
-        row++;
-      }
-
-      // Виведення таблиці продуктів
-      worksheet.Cell(row + 2, 1).Value = "Назва товару";
-      worksheet.Cell(row + 2, 2).Value = "Кількість";
-      worksheet.Cell(row + 2, 3).Value = "Ціна";
-
-      int productRow = row + 3;
-      foreach (var product in products)
-      {
-        worksheet.Cell(productRow, 1).Value = product.Name;
-        worksheet.Cell(productRow, 2).Value = product.Quantity;
-        worksheet.Cell(productRow, 3).Value = product.Price;
-        productRow++;
-      }
-
-      workbook.SaveAs(filePath);
+      // Ініціалізація шрифту з підтримкою кирилиці
+      InitializeCyrillicFont();
     }
-    public void GenerateReport(List<Product> products, string filePath)
+
+    private void InitializeCyrillicFont()
     {
-      var document = new PdfDocument();
-      var page = document.AddPage();
-      var gfx = XGraphics.FromPdfPage(page);
-      var font = new XFont("Verdana", 12);
-
-      int yPoint = 40;
-      gfx.DrawString("Звіт по товарах", font, XBrushes.Black, new XRect(0, yPoint, page.Width, page.Height), XStringFormats.TopCenter);
-      yPoint += 40;
-
-      foreach (var product in products)
+      try
       {
-        string line = $"{product.Name} - {product.Quantity} шт. - {product.Price} грн.";
-        gfx.DrawString(line, font, XBrushes.Black, new XRect(40, yPoint, page.Width, page.Height), XStringFormats.TopLeft);
-        yPoint += 20;
-      }
+        // Шлях до шрифту Arial (або іншого з підтримкою кирилиці)
+        string fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
 
-      document.Save(filePath);
+        if (File.Exists(fontPath))
+        {
+          var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+          _cyrillicFont = new Font(baseFont, 10);
+        }
+        else
+        {
+          // Якщо Arial не знайдено, використовуємо стандартний шрифт з попередженням
+          _cyrillicFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+          MessageBox.Show("Шрифт Arial не знайдено. Деякі символи можуть відображатися неправильно.");
+        }
+      }
+      catch
+      {
+        _cyrillicFont = FontFactory.GetFont(FontFactory.HELVETICA, 10);
+      }
+    }
+
+    public void GenerateReport(
+        List<Product> products,
+        List<CategoryCount> categoryDistribution,
+        double averagePrice,
+        int totalQuantity,
+        int criticalLowCount,
+        string filePath)
+    {
+      // Реєструємо провайдер кодів для підтримки кирилиці
+      System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
+      // Створюємо документ
+      Document document = new Document(PageSize.A4, 50, 50, 25, 25);
+
+      try
+      {
+        // Створюємо PDF writer
+        PdfWriter writer = PdfWriter.GetInstance(document, new FileStream(filePath, FileMode.Create));
+        document.Open();
+
+        // Визначаємо шрифти
+        var titleFont = new Font(_cyrillicFont.BaseFont, 18, Font.BOLD, BaseColor.BLUE);
+        var headerFont = new Font(_cyrillicFont.BaseFont, 12, Font.BOLD);
+        var normalFont = new Font(_cyrillicFont.BaseFont, 10);
+
+        // Заголовок документа
+        document.Add(new Paragraph("Звіт по інвентаризації", titleFont));
+        document.Add(new Paragraph($"Дата генерації: {DateTime.Now.ToShortDateString()}", normalFont));
+        document.Add(Chunk.NEWLINE);
+
+        // Додаємо загальну статистику
+        document.Add(new Paragraph("Загальна статистика:", headerFont));
+        document.Add(new Paragraph($"Середня ціна: {averagePrice:C}", normalFont));
+        document.Add(new Paragraph($"Загальна кількість: {totalQuantity}", normalFont));
+        document.Add(new Paragraph($"Товарів з низьким запасом: {criticalLowCount}", normalFont));
+        document.Add(Chunk.NEWLINE);
+
+        // Додаємо таблицю продуктів
+        document.Add(new Paragraph("Список продуктів:", headerFont));
+        PdfPTable productsTable = new PdfPTable(4);
+        productsTable.WidthPercentage = 100;
+        productsTable.SetWidths(new float[] { 3, 1, 1, 2 });
+
+        // Заголовки таблиці
+        productsTable.AddCell(new Phrase("Назва", headerFont));
+        productsTable.AddCell(new Phrase("Ціна", headerFont));
+        productsTable.AddCell(new Phrase("Кількість", headerFont));
+        productsTable.AddCell(new Phrase("Категорія", headerFont));
+
+        // Заповнюємо таблицю даними
+        foreach (var product in products)
+        {
+          productsTable.AddCell(new Phrase(product.Name, normalFont));
+          productsTable.AddCell(new Phrase(product.Price.ToString("C"), normalFont));
+          productsTable.AddCell(new Phrase(product.Quantity.ToString(), normalFont));
+          productsTable.AddCell(new Phrase(product.CategoryID.ToString(), normalFont));
+        }
+
+        document.Add(productsTable);
+        document.Add(Chunk.NEWLINE);
+
+        // Додаємо розподіл по категоріям
+        document.Add(new Paragraph("Розподіл по категоріям:", headerFont));
+        PdfPTable categoriesTable = new PdfPTable(2);
+        categoriesTable.WidthPercentage = 50;
+        categoriesTable.SetWidths(new float[] { 3, 1 });
+
+        categoriesTable.AddCell(new Phrase("Категорія", headerFont));
+        categoriesTable.AddCell(new Phrase("Кількість", headerFont));
+
+        foreach (var category in categoryDistribution)
+        {
+          categoriesTable.AddCell(new Phrase(category.CategoryName, normalFont));
+          categoriesTable.AddCell(new Phrase(category.ProductCount.ToString(), normalFont));
+        }
+
+        document.Add(categoriesTable);
+      }
+      catch (DocumentException dex)
+      {
+        MessageBox.Show($"Помилка при створенні PDF: {dex.Message}");
+        throw;
+      }
+      catch (IOException ioex)
+      {
+        MessageBox.Show($"Помилка доступу до файлу: {ioex.Message}");
+        throw;
+      }
+      finally
+      {
+        document.Close();
+      }
     }
   }
 }

@@ -37,12 +37,7 @@ namespace InventoryManagement
       ShowProductsView();
     }
 
-    private void SuppliersButton_Click(object sender, RoutedEventArgs e)
-    {
-      _supplierViewModel ??= App.ServiceProvider?.GetRequiredService<SupplierViewModel>();
-      _supplierViewModel?.LoadSuppliers();
-      ShowSuppliersView();
-    }
+  
 
     private void ShowCategoriesView()
     {
@@ -83,12 +78,18 @@ namespace InventoryManagement
         }
       }
     }
+    private void SuppliersButton_Click(object sender, RoutedEventArgs e)
+    {
+      _supplierViewModel ??= App.ServiceProvider?.GetRequiredService<SupplierViewModel>();
+      _supplierViewModel?.LoadSuppliers();
+      ShowSuppliersView();
+    }
     private void AnalyticsButton_Click(object sender, RoutedEventArgs e)
     {
-      var analyticsViewModel = App.ServiceProvider?.GetRequiredService<AnalyticsViewModel>();
+      _analyticsViewModel ??= App.ServiceProvider?.GetRequiredService<AnalyticsViewModel>();
       var analyticsWindow = new AnalyticsView
       {
-        DataContext = analyticsViewModel
+        DataContext = _analyticsViewModel
       };
       analyticsWindow.Show();
     }
@@ -127,7 +128,7 @@ namespace InventoryManagement
 
     private void ExportPdfButton_Click(object sender, RoutedEventArgs e)
     {
-      if (_productViewModel == null || !_productViewModel.Products.Any())
+      if (_analyticsViewModel == null || !_analyticsViewModel.Products.Any())
       {
         MessageBox.Show("Немає даних для експорту.", "Попередження", MessageBoxButton.OK, MessageBoxImage.Warning);
         return;
@@ -136,20 +137,30 @@ namespace InventoryManagement
       var saveDialog = new SaveFileDialog
       {
         Filter = "PDF файл (*.pdf)|*.pdf",
-        FileName = "Звіт.pdf"
+        FileName = $"Звіт_{DateTime.Now:yyyyMMdd_HHmm}.pdf",
+        DefaultExt = ".pdf"
       };
 
       if (saveDialog.ShowDialog() == true)
       {
-        var strategy = new PdfReportStrategy();
-        var context = new ReportContext(strategy);
-        context.GenerateReport(_analyticsViewModel.Products.ToList(),
-          _analyticsViewModel.CategoryDistribution.ToList(),
-          _analyticsViewModel.AveragePrice,
-          _analyticsViewModel.TotalQuantity,
-          _analyticsViewModel.CriticalLowCount,
-          saveDialog.FileName);
-        MessageBox.Show("Звіт у PDF збережено успішно!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
+        try
+        {
+          var strategy = new PdfReportStrategy();
+          var context = new ReportContext(strategy);
+          context.GenerateReport(
+              _analyticsViewModel.Products.ToList(),
+              _analyticsViewModel.CategoryDistribution.ToList(),
+              _analyticsViewModel.AveragePrice,
+              _analyticsViewModel.TotalQuantity,
+              _analyticsViewModel.CriticalLowCount,
+              saveDialog.FileName);
+
+          MessageBox.Show("Звіт у PDF збережено успішно!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+          MessageBox.Show($"Помилка при збереженні PDF: {ex.Message}", "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
       }
     }
 
