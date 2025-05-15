@@ -1,0 +1,35 @@
+<Window x:Class="InventoryManagement.Views.AnalyticsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Аналітика" Height="400" Width="600">
+  <Grid Margin="10">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <TextBlock Text="Середня ціна товару:" FontWeight="Bold"/>
+    <TextBlock Text="{Binding AveragePrice}" Grid.Row="0" Margin="180,0,0,0"/>
+
+    <TextBlock Text="Загальна кількість товарів:" Grid.Row="1" FontWeight="Bold"/>
+    <TextBlock Text="{Binding TotalQuantity}" Grid.Row="1" Margin="180,0,0,0"/>
+
+    <TextBlock Text="К-сть з критично низьким запасом:" Grid.Row="2" FontWeight="Bold"/>
+    <TextBlock Text="{Binding CriticalLowCount}" Grid.Row="2" Margin="260,0,0,0"/>
+
+    <!-- Графік -->
+    <ListBox Grid.Row="3" ItemsSource="{Binding CategoryDistribution}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding CategoryName}" Width="200"/>
+            <ProgressBar Value="{Binding ProductCount}" Maximum="50" Height="20" Width="250" Margin="10,0"/>
+            <TextBlock Text="{Binding ProductCount}" Margin="10,0"/>
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
+</Window>

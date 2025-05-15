@@ -34,7 +34,7 @@ namespace InventoryManagement
         services.AddTransient<CategoryViewModel>();
         services.AddTransient<ProductViewModel>();
         services.AddTransient<SupplierViewModel>();
-
+        services.AddTransient<AnalyticsViewModel>();
         // 🪟 Реєстрація головного вікна
         services.AddTransient<MainWindow>();
 

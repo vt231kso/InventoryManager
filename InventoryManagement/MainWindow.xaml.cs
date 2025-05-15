@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using InventoryManagement.Data;
+using InventoryManagement.Repositories;
 using InventoryManagement.ViewModels;
 using InventoryManagement.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -78,5 +80,17 @@ namespace InventoryManagement
         }
       }
     }
+    private void AnalyticsButton_Click(object sender, RoutedEventArgs e)
+    {
+      var analyticsViewModel = App.ServiceProvider?.GetRequiredService<AnalyticsViewModel>();
+      var analyticsWindow = new AnalyticsView
+      {
+        DataContext = analyticsViewModel
+      };
+      analyticsWindow.Show();
+    }
+
+
+
   }
 }

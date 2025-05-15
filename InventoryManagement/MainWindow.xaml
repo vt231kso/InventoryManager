@@ -13,6 +13,8 @@
       <Button Content="Категорії" Click="CategoriesButton_Click" Margin="10" Padding="20,5"/>
       <Button Content="Товари" Click="ProductsButton_Click" Margin="10" Padding="20,5"/>
       <Button Content="Постачальники" Click="SuppliersButton_Click" Margin="10" Padding="20,5"/>
+      <!-- В NavigationPanel додайте кнопку -->
+      <Button Content="Аналітика" Click="AnalyticsButton_Click" Margin="10" Padding="20,5"/>
     </StackPanel>
 
     <!-- Контент -->
