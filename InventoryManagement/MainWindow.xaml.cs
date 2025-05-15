@@ -2,10 +2,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using InventoryManagement.Data;
+using InventoryManagement.Reports;
 using InventoryManagement.Repositories;
 using InventoryManagement.ViewModels;
 using InventoryManagement.Views;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 
 namespace InventoryManagement
 {
@@ -89,6 +91,55 @@ namespace InventoryManagement
       };
       analyticsWindow.Show();
     }
+
+
+    private void ExportExcelButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (_productViewModel == null || !_productViewModel.Products.Any())
+      {
+        MessageBox.Show("Немає даних для експорту.", "Попередження", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+      }
+
+      var saveDialog = new SaveFileDialog
+      {
+        Filter = "Excel файл (*.xlsx)|*.xlsx",
+        FileName = "Звіт.xlsx"
+      };
+
+      if (saveDialog.ShowDialog() == true)
+      {
+        var strategy = new ExcelReportStrategy();
+        var context = new ReportContext(strategy);
+        context.Generate(_productViewModel.Products.ToList(), saveDialog.FileName);
+        MessageBox.Show("Звіт у Excel збережено успішно!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
+      }
+    }
+
+    private void ExportPdfButton_Click(object sender, RoutedEventArgs e)
+    {
+      if (_productViewModel == null || !_productViewModel.Products.Any())
+      {
+        MessageBox.Show("Немає даних для експорту.", "Попередження", MessageBoxButton.OK, MessageBoxImage.Warning);
+        return;
+      }
+
+      var saveDialog = new SaveFileDialog
+      {
+        Filter = "PDF файл (*.pdf)|*.pdf",
+        FileName = "Звіт.pdf"
+      };
+
+      if (saveDialog.ShowDialog() == true)
+      {
+        var strategy = new PdfReportStrategy();
+        var context = new ReportContext(strategy);
+        context.Generate(_productViewModel.Products.ToList(), saveDialog.FileName);
+        MessageBox.Show("Звіт у PDF збережено успішно!", "Успіх", MessageBoxButton.OK, MessageBoxImage.Information);
+      }
+    }
+
+
 
 
 

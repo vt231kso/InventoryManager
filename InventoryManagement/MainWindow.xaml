@@ -15,6 +15,11 @@
       <Button Content="Постачальники" Click="SuppliersButton_Click" Margin="10" Padding="20,5"/>
       <!-- В NavigationPanel додайте кнопку -->
       <Button Content="Аналітика" Click="AnalyticsButton_Click" Margin="10" Padding="20,5"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+        <Button Content="Експорт у PDF" Click="ExportPdfButton_Click" Margin="5"/>
+        <Button Content="Експорт у Excel" Click="ExportExcelButton_Click" Margin="5"/>
+      </StackPanel>
+
     </StackPanel>
 
     <!-- Контент -->
