@@ -44,6 +44,64 @@
 
 3) код залишається чистим і структурованим.
 
+3) **Strategy**
+
+Патерн "Стратегія" дозволяє визначити сімейство алгоритмів, інкапсулювати кожен з них і зробити їх взаємозамінними. Це дозволяє змінювати поведінку програми на льоту без модифікації основного коду.
+
+ У проєкті:
+ 
+Використовується для сортування списку товарів за різними критеріями: назвою, ціною, кількістю.
+
+Структура реалізації:
+
+Інтерфейс ISortStrategy — визначає метод IEnumerable<Product> Sort(IEnumerable<Product> products)
+
+Класи-стратегії:
+
+SortByNameStrategy
+
+SortByPriceStrategy
+
+SortByQuantityStrategy
+
+Контекст: ProductSorter, який використовує одну зі стратегій
+
+У ViewModel — виклик SetStrategy(...) змінює логіку сортування
+
+4) **"Спостерігач" (Observer Pattern)**
+
+Цей шаблон дозволяє об'єктам-спостерігачам стежити за змінами стану об'єкта-суб'єкта. У WPF це основа механізму data-binding.
+
+У проєкті:
+
+Клас ProductViewModel реалізує INotifyPropertyChanged
+
+Компоненти UI (наприклад, TextBox, ComboBox) автоматично оновлюються при зміні властивостей
+
+Основний механізм:
+
+public event PropertyChangedEventHandler PropertyChanged;
+
+protected void OnPropertyChanged(string propertyName)
+{
+    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+
+Як працює:
+
+public Product CurrentProduct
+{
+    get => _currentProduct;
+    set
+    {
+        _currentProduct = value;
+        OnPropertyChanged(nameof(CurrentProduct));
+    }
+}
+
+Коли властивість змінюється, викликається OnPropertyChanged, і UI автоматично підтягує нове значення.
+   
+
 **Programming principles**
    1) **Принцип єдиного обов'язку (Single Responsibility Principle, SRP):**
       
@@ -124,37 +182,68 @@ CRUD виконується простими методами: AddProduct, Updat
 
 Усі оновлення автоматично відображаються в UI через INotifyPropertyChanged.
 
+4) **Принцип відкритості/закритості (OCP)**
+   Для додавання нового критерію сортування (наприклад, за датою) потрібно:
+
+- Створити новий клас (наприклад, SortByDateStrategy)
+
+- Реалізувати ISortingStrategy
+
+Не потрібно змінювати існуючий код
+
 **Refactoring Techniques**
 
 У проєкті використовувались наступні техніки рефакторингу для покращення якості, читабельності та підтримуваності коду:
 
-1. Extract Class
+1. **Extract Class**
    
 Було виділено окремі класи для репозиторіїв (ProductRepository, CategoryRepository тощо), щоб ізолювати логіку доступу до даних.
 
-3. Move Method
+3. **Move Method**
 
 CRUD-методи були перенесені з ViewModel у відповідні репозиторії, що дозволяє зосередити логіку доступу до БД в одному місці.
 
-5. Encapsulate Field
+5. **Encapsulate Field**
 
 Використано властивості (public Property { get; set; }) замість прямого доступу до полів, що забезпечує контроль над доступом до даних.
 
-7. Replace Magic Numbers/Strings with Constants
+7. **Replace Magic Numbers/Strings with Constants**
 
 Константи та ідентифікатори збережені в окремих файлах (наприклад, enum або static class), щоб уникнути "магічних значень".
 
-8. Use Dependency Injection
+8. **Use Dependency Injection**
 
 Залежності (репозиторії) передаються через конструктори до ViewModel, що робить їх легко замінними та тестованими.
 
-9. Remove Dead Code
+9. **Remove Dead Code**
 
 Під час розробки видалено тимчасовий або неактуальний код, що покращило чистоту проєкту.
 
-10. Rename for Clarity
+10. **Rename for Clarity**
 
 Імена класів, змінних і методів були змінені для кращої зрозумілості (наприклад, AddProduct() замість BtnClick()).
+
+11. **Винесення стратегії" (Extract Strategy)**
+    Це техніка, при якій ти витягуєш змінну поведінку (наприклад, сортування) у окремий клас-стратегію.
+
+У проєкті:
+Замість того, щоб писати логіку сортування у ProductViewModel, ти виніс її в окремі класи:
+
+- SortByNameStrategy
+
+- SortByPriceStrategy
+
+- SortByQuantityStrategy
+
+Це дозволяє:
+
+- Уникати дублювання
+
+- Тестувати стратегії незалежно
+
+- Додавати нові варіанти сортування, не змінюючи ProductViewModel
+
+Це класичний приклад "витягування змінного алгоритму" — дуже добра техніка для зменшення складності.
 
 
   
