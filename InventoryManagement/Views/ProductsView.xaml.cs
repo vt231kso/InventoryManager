@@ -39,15 +39,16 @@ namespace InventoryManagement.Views
       if (SortComboBox.SelectedItem is ComboBoxItem selectedItem &&
           DataContext is ProductViewModel viewModel)
       {
-        string sortCriterion = selectedItem.Content.ToString() switch
-        {
-          "Назвою" => "Name",
-          "Ціною" => "Price",
-          "Кількістю" => "Quantity",
-          _ => "Name" // Значення за замовчуванням
-        };
+         SortCriterion sortCriterion = selectedItem.Content.ToString() switch
+         {
+          "Назвою" => SortCriterion.Name,
+          "Ціною" => SortCriterion.Price,
+          "Кількістю" => SortCriterion.Quantity,
+          _ => SortCriterion.Name
+         };
 
-        viewModel.SortProducts(sortCriterion);
+         viewModel.SortProducts(sortCriterion);
+
       }
     }
 

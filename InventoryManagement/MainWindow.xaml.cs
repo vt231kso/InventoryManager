@@ -33,7 +33,7 @@ namespace InventoryManagement
     private void ProductsButton_Click(object sender, RoutedEventArgs e)
     {
       _productViewModel ??= App.ServiceProvider?.GetRequiredService<ProductViewModel>();
-      _productViewModel?.LoadProducts();
+      _productViewModel?.LoadData();
       ShowProductsView();
     }
 
