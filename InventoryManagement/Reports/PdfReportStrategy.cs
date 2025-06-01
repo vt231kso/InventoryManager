@@ -8,18 +8,29 @@ namespace InventoryManagement.Reports
 {
     public class PdfReportStrategy : IReportStrategy
     {
-        private readonly Font _cyrillicFont;
+        private readonly Font _normalFont;
+        private readonly Font _headerFont;
+        private readonly Font _titleFont;
+
         private const string DefaultFontName = "arial.ttf";
         private const int NormalFontSize = 10;
         private const int HeaderFontSize = 12;
         private const int TitleFontSize = 18;
 
+        private const float PageMarginLeft = 50;
+        private const float PageMarginRight = 50;
+        private const float PageMarginTop = 25;
+        private const float PageMarginBottom = 25;
+
         public PdfReportStrategy()
         {
-            _cyrillicFont = InitializeCyrillicFont();
+            var baseFont = LoadBaseFont();
+            _normalFont = new Font(baseFont, NormalFontSize);
+            _headerFont = new Font(baseFont, HeaderFontSize, Font.BOLD);
+            _titleFont = new Font(baseFont, TitleFontSize, Font.BOLD, BaseColor.BLUE);
         }
 
-        private Font InitializeCyrillicFont()
+        private BaseFont LoadBaseFont()
         {
             try
             {
@@ -27,15 +38,14 @@ namespace InventoryManagement.Reports
                     Environment.GetFolderPath(Environment.SpecialFolder.Fonts), 
                     DefaultFontName);
 
-                var baseFont = File.Exists(fontPath) 
+                return File.Exists(fontPath)
                     ? BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED)
                     : BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
-
-                return new Font(baseFont, NormalFontSize);
             }
-            catch
+            catch (Exception ex)
             {
-                return FontFactory.GetFont(FontFactory.HELVETICA, NormalFontSize);
+                Console.Error.WriteLine($"Font load error: {ex.Message}");
+                return BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
             }
         }
 
@@ -49,15 +59,15 @@ namespace InventoryManagement.Reports
         {
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-            using var document = new Document(PageSize.A4, 50, 50, 25, 25);
             using var stream = new FileStream(filePath, FileMode.Create);
+            using var document = new Document(PageSize.A4, PageMarginLeft, PageMarginRight, PageMarginTop, PageMarginBottom);
             using var writer = PdfWriter.GetInstance(document, stream);
-            
+
             document.Open();
             try
             {
-                AddDocumentHeader(document);
-                AddSummarySection(document, averagePrice, totalQuantity, criticalLowCount);
+                AddHeader(document);
+                AddSummary(document, averagePrice, totalQuantity, criticalLowCount);
                 AddProductsTable(document, products);
                 AddCategoriesTable(document, categoryDistribution);
             }
@@ -67,87 +77,68 @@ namespace InventoryManagement.Reports
             }
         }
 
-        private void AddDocumentHeader(Document document)
+        private void AddHeader(Document doc)
         {
-            var titleFont = new Font(_cyrillicFont.BaseFont, TitleFontSize, Font.BOLD, BaseColor.BLUE);
-            var normalFont = new Font(_cyrillicFont.BaseFont, NormalFontSize);
-
-            document.Add(new Paragraph("Звіт по інвентаризації", titleFont));
-            document.Add(new Paragraph($"Дата генерації: {DateTime.Now:dd.MM.yyyy}", normalFont));
-            document.Add(Chunk.NEWLINE);
+            doc.Add(new Paragraph("Звіт по інвентаризації", _titleFont));
+            doc.Add(new Paragraph($"Дата генерації: {DateTime.Now:dd.MM.yyyy}", _normalFont));
+            doc.Add(Chunk.NEWLINE);
         }
 
-        private void AddSummarySection(Document document, double averagePrice, int totalQuantity, int criticalLowCount)
+        private void AddSummary(Document doc, double avgPrice, int totalQty, int lowStock)
         {
-            var headerFont = new Font(_cyrillicFont.BaseFont, HeaderFontSize, Font.BOLD);
-            var normalFont = new Font(_cyrillicFont.BaseFont, NormalFontSize);
-
-            document.Add(new Paragraph("Загальна статистика:", headerFont));
-            document.Add(new Paragraph($"Середня ціна: {averagePrice:C}", normalFont));
-            document.Add(new Paragraph($"Загальна кількість: {totalQuantity}", normalFont));
-            document.Add(new Paragraph($"Товарів з низьким запасом: {criticalLowCount}", normalFont));
-            document.Add(Chunk.NEWLINE);
+            doc.Add(new Paragraph("Загальна статистика:", _headerFont));
+            doc.Add(new Paragraph($"Середня ціна: {avgPrice:C}", _normalFont));
+            doc.Add(new Paragraph($"Загальна кількість: {totalQty}", _normalFont));
+            doc.Add(new Paragraph($"Товарів з низьким запасом: {lowStock}", _normalFont));
+            doc.Add(Chunk.NEWLINE);
         }
 
-        private void AddProductsTable(Document document, List<Product> products)
+        private void AddProductsTable(Document doc, List<Product> products)
         {
-            var table = new PdfPTable(4)
-            {
-                WidthPercentage = 100
-            };
+            var table = new PdfPTable(4) { WidthPercentage = 100 };
             table.SetWidths(new[] { 3f, 1f, 1f, 2f });
 
             AddTableHeader(table, "Назва", "Ціна", "Кількість", "Категорія");
-            AddProductRows(table, products);
 
-            document.Add(new Paragraph("Список продуктів:", GetHeaderFont()));
-            document.Add(table);
-            document.Add(Chunk.NEWLINE);
+            foreach (var p in products)
+            {
+                AddTableRow(table, p.Name, p.Price.ToString("C"), p.Quantity.ToString(), p.CategoryID.ToString());
+            }
+
+            doc.Add(new Paragraph("Список продуктів:", _headerFont));
+            doc.Add(table);
+            doc.Add(Chunk.NEWLINE);
         }
 
-        private void AddCategoriesTable(Document document, List<CategoryCount> categories)
+        private void AddCategoriesTable(Document doc, List<CategoryCount> categories)
         {
-            var table = new PdfPTable(2)
-            {
-                WidthPercentage = 50
-            };
+            var table = new PdfPTable(2) { WidthPercentage = 50 };
             table.SetWidths(new[] { 3f, 1f });
 
             AddTableHeader(table, "Категорія", "Кількість");
-            AddCategoryRows(table, categories);
 
-            document.Add(new Paragraph("Розподіл по категоріям:", GetHeaderFont()));
-            document.Add(table);
+            foreach (var c in categories)
+            {
+                AddTableRow(table, c.CategoryName, c.ProductCount.ToString());
+            }
+
+            doc.Add(new Paragraph("Розподіл по категоріям:", _headerFont));
+            doc.Add(table);
         }
-
-        private Font GetHeaderFont() => new(_cyrillicFont.BaseFont, HeaderFontSize, Font.BOLD);
-        private Font GetNormalFont() => new(_cyrillicFont.BaseFont, NormalFontSize);
 
         private void AddTableHeader(PdfPTable table, params string[] headers)
         {
-            foreach (var header in headers)
+            foreach (var h in headers)
             {
-                table.AddCell(new Phrase(header, GetHeaderFont()));
+                table.AddCell(new Phrase(h, _headerFont));
             }
         }
 
-        private void AddProductRows(PdfPTable table, List<Product> products)
+        private void AddTableRow(PdfPTable table, params string[] values)
         {
-            foreach (var product in products)
+            foreach (var v in values)
             {
-                table.AddCell(new Phrase(product.Name, GetNormalFont()));
-                table.AddCell(new Phrase(product.Price.ToString("C"), GetNormalFont()));
-                table.AddCell(new Phrase(product.Quantity.ToString(), GetNormalFont()));
-                table.AddCell(new Phrase(product.CategoryID.ToString(), GetNormalFont()));
-            }
-        }
-
-        private void AddCategoryRows(PdfPTable table, List<CategoryCount> categories)
-        {
-            foreach (var category in categories)
-            {
-                table.AddCell(new Phrase(category.CategoryName, GetNormalFont()));
-                table.AddCell(new Phrase(category.ProductCount.ToString(), GetNormalFont()));
+                table.AddCell(new Phrase(v, _normalFont));
             }
         }
     }
